@@ -1,0 +1,37 @@
+version: '2'
+services:
+  mongo:
+    image: mongo
+  rabbitmq:
+    image: rabbitmq
+  scheduler: &common
+    build: .
+    image: celerybeat-mongo
+    #volumes:
+    #  - .:/opt/celerybeat-mongo
+    depends_on:
+      - mongo
+      - rabbitmq
+    command:
+      - celery
+      - beat
+      - --app=app
+      - --workdir=tests/
+      - --scheduler=app.TestMongoScheduler
+      - --loglevel=INFO
+      - --pidfile=
+  worker:
+    <<: *common
+    command:
+      - celery
+      - worker
+      - --app=app
+      - --workdir=tests/
+      - --concurrency=1
+      - --loglevel=INFO
+      - --pidfile=
+  test:
+    <<: *common
+    environment:
+      - COVERAGE_FILE=/tmp/coverage
+    command: echo "Nothing to do"
