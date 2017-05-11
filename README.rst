@@ -25,7 +25,7 @@ If no settings are specified, the library will attempt to use the
 Schedules can be manipulated in the Mongo database using the
 mongoengine models in celerybeatmongo.models or through
 direct database manipulation. There exist two types of schedules,
-interval and crontab.
+interval and crontab
 
 **IMPORTANT**: because Mongoengine (http://mongoengine-odm.readthedocs.org/) is used to read 
 	the database, objects must have a field `_cls` set to `PeriodicTask`.  Why?  Because 
