@@ -105,10 +105,14 @@ class MongoScheduler(Scheduler):
     Model = PeriodicTask
 
     def __init__(self, *args, **kwargs):
-        db = (getattr(current_app.conf, 'CELERY_MONGODB_SCHEDULER_DB', '') or
-              'celery')
+        db = (
+            getattr(current_app.conf, 'CELERY_MONGODB_SCHEDULER_DB', '') or
+            getattr(current_app.conf, 'mongodb_scheduler_db', '') or
+            'celery'
+        )
         mongo_url = (
             getattr(current_app.conf, 'CELERY_MONGODB_SCHEDULER_URL', '') or
+            getattr(current_app.conf, 'mongodb_scheduler_url', '') or
             'mongodb://localhost:27017'
         )
         self._mongo = mongoengine.connect(db, host=mongo_url)
@@ -119,8 +123,12 @@ class MongoScheduler(Scheduler):
         self._schedule = {}
         self._last_updated = None
         Scheduler.__init__(self, *args, **kwargs)
-        self.max_interval = (kwargs.get('max_interval') or
-                             self.app.conf.CELERYBEAT_MAX_LOOP_INTERVAL or 5)
+        self.max_interval = (
+            kwargs.get('max_interval') or
+            getattr(self.app.conf, 'CELERYBEAT_MAX_LOOP_INTERVAL', 0) or
+            getattr(self.app.conf, 'beat_max_loop_interval', 0) or
+            5
+        )
 
     def setup_schedule(self):
         pass

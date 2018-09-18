@@ -13,6 +13,7 @@ import celery.schedules
 def get_periodic_task_collection():
     return (
         getattr(current_app.conf, 'CELERY_MONGODB_SCHEDULER_COLLECTION', '') or
+        getattr(current_app.conf, 'mongodb_scheduler_collection', '') or
         'schedules'
     )
 
