@@ -1,0 +1,10 @@
+[flake8]
+show-source = True
+statistics = True
+count = True
+exclude =
+    .git,
+    __pycache__,
+    celerybeat_mongo.egg-info,
+    env
+ignore =
