@@ -57,7 +57,7 @@ class MongoScheduleEntry(ScheduleEntry):
         if not self._task.enabled:
             return False, 5.0   # 5 second delay for re-enable.
         if hasattr(self._task, 'start_after') and self._task.start_after:
-            if datetime.datetime.now() < self._task.start_after:
+            if datetime.datetime.now() < self._task.start_after.replace(tzinfo=None):
                 return False, 5.0
         if hasattr(self._task, 'max_run_count') and self._task.max_run_count:
             if (self._task.total_run_count or 0) >= self._task.max_run_count:
@@ -84,7 +84,7 @@ class MongoScheduleEntry(ScheduleEntry):
             self._task.total_run_count = self.total_run_count
         if (
                 self.last_run_at and self._task.last_run_at and
-                self.last_run_at > self._task.last_run_at
+                self.last_run_at.replace(tzinfo=None) > self._task.last_run_at.replace(tzinfo=None)
         ):
             self._task.last_run_at = self.last_run_at
         self._task.run_immediately = False
