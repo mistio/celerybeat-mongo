@@ -158,3 +158,15 @@ class MongoScheduler(Scheduler):
     def sync(self):
         for entry in self._schedule.values():
             entry.save()
+
+    def tick(self, *args, **kwargs):
+        adjust = self.adjust
+        intervals = []
+        for entry in self.schedule.values():
+            is_due, next_time_to_run = self.is_due(entry)
+            intervals.append(adjust(next_time_to_run))
+            if is_due:
+                # self.reserve() calls next(). TODO: investigate if required.
+                self.reserve(entry)
+                self.apply_entry(entry, producer=self.producer)
+        return min(intervals + [self.sync_every])
