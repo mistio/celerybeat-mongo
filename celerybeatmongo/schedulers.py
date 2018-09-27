@@ -169,4 +169,4 @@ class MongoScheduler(Scheduler):
                 # self.reserve() calls next(). TODO: investigate if required.
                 self.reserve(entry)
                 self.apply_entry(entry, producer=self.producer)
-        return min(intervals + [self.sync_every])
+        return min(intervals + [self.max_interval])
