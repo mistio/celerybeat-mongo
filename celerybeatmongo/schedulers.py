@@ -8,6 +8,8 @@ import mongoengine
 import traceback
 import datetime
 
+from mongoengine.errors import SaveConditionError
+
 from celerybeatmongo.models import PeriodicTask
 from celery.beat import Scheduler, ScheduleEntry
 from celery.utils.log import get_logger
@@ -69,7 +71,7 @@ class MongoScheduleEntry(ScheduleEntry):
         return self.schedule.is_due(self.last_run_at)
 
     def __repr__(self):
-        return (u'<{0} ({1} {2}(*{3}, **{4}) {{5}})>'.format(
+        return ('<{0} ({1} {2}(*{3}, **{4}) {{5}})>'.format(
             self.__class__.__name__,
             self.name, self.task, self.args,
             self.kwargs, self.schedule,
@@ -89,6 +91,11 @@ class MongoScheduleEntry(ScheduleEntry):
             self._task.last_run_at = self.last_run_at
         self._task.run_immediately = False
         try:
+            self._task.save(save_condition={})
+        except SaveConditionError:  # Sleep and retry
+            from time import sleep
+            from random import random
+            sleep(random())
             self._task.save(save_condition={})
         except Exception:
             get_logger(__name__).error(traceback.format_exc())
@@ -156,13 +163,13 @@ class MongoScheduler(Scheduler):
         return self._schedule
 
     def sync(self):
-        for entry in self._schedule.values():
+        for entry in list(self._schedule.values()):
             entry.save()
 
     def tick(self, *args, **kwargs):
         adjust = self.adjust
         intervals = []
-        for entry in self.schedule.values():
+        for entry in list(self.schedule.values()):
             is_due, next_time_to_run = self.is_due(entry)
             intervals.append(adjust(next_time_to_run))
             if is_due:
